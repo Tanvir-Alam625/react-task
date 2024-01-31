@@ -84,11 +84,7 @@ const Problem2 = () => {
       try {
         const response = await fetch(`${apiUrl}${page}`);
         const result = await response.json();
-        if (data.length) {
-          setData((prev) => [...prev, ...result?.results]);
-        } else {
-          setData(result?.results);
-        }
+        setData(result?.results);
       } catch (error) {
         console.error(error);
       } finally {
