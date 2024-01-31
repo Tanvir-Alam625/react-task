@@ -3,6 +3,7 @@ import { Form, Modal } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import { stringReplaceSpaceWithDash } from "../../utils/stringReplaceWithDash";
 import crossImg from "../assets/circle-cross.svg";
+import { useInView } from "react-intersection-observer";
 
 const ModalContacts = forwardRef(
   (
@@ -23,13 +24,21 @@ const ModalContacts = forwardRef(
     const navigate = useNavigate();
     const location = useLocation();
 
+    const {
+      ref: refIn,
+      inView,
+      entry,
+    } = useInView({
+      /* Optional options */
+      threshold: 0,
+    });
+
+    console.log(inView, entry, "sfsdff");
+
     const handleModalShowContacts = (e) => {
       const { textContent } = e.target;
       setDataToFetch(stringReplaceSpaceWithDash(textContent));
-
-      if (location.pathname !== "/" && page !== 2) {
-        setPage(2);
-      }
+      setPage(1);
 
       if (location.pathname === "/") {
         navigate(
@@ -45,37 +54,8 @@ const ModalContacts = forwardRef(
     const handleModalCloseContacts = () => {
       dispatch({ type: "showModalOne", value: false });
       navigate("/problem-2");
+      setPage(1);
     };
-
-    const handleIntersection = useCallback(
-      (entries) => {
-        const target = entries[0];
-        if (target.isIntersecting) {
-          // Load more data when user scrolls to the bottom
-          setPage((prevPage) => prevPage + 1);
-        }
-      },
-      [setPage]
-    );
-
-    useEffect(() => {
-      const observer = new IntersectionObserver(handleIntersection, {
-        root: null,
-        rootMargin: "0px",
-        threshold: 1.0,
-      });
-
-      if (ref.current) {
-        observer.observe(ref.current);
-      }
-
-      return () => {
-        if (ref.current) {
-          observer.unobserve(ref.current);
-        }
-      };
-    }, [handleIntersection, ref]);
-
     return (
       <Modal show={modalState.showModal1} size="lg" centered scrollable>
         <Modal.Header>
@@ -124,10 +104,10 @@ const ModalContacts = forwardRef(
                 ?.filter((item) =>
                   checkbox === true ? item.id % 2 === 0 : item
                 )
-                .map((item) => (
+                .map((item, i) => (
                   <tr
                     className="cursor-pointer"
-                    key={item.id}
+                    key={i}
                     onClick={() => {
                       dispatch({ type: "showModalTwo", value: true });
                       setContactData(item);
@@ -138,7 +118,7 @@ const ModalContacts = forwardRef(
                   </tr>
                 ))}
 
-              <tr key="0" ref={ref}>
+              <tr key="0" ref={refIn}>
                 {isLoading && (
                   <>
                     <td>Loading...</td>

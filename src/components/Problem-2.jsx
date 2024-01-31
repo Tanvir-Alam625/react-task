@@ -12,8 +12,9 @@ import crossImg from "../assets/circle-cross.svg";
 import { stringReplaceSpaceWithDash } from "../../utils/stringReplaceWithDash";
 
 // Constants
-const API_URL_CONTACTS = "https://contact.mediusware.com/api/contacts/?page=";
-const API_URL_US_CONTACTS =
+export const API_URL_CONTACTS =
+  "https://contact.mediusware.com/api/contacts/?page=";
+export const API_URL_US_CONTACTS =
   "https://contact.mediusware.com/api/country-contacts/United%20States/?page=";
 
 // Initial state of modal
@@ -39,7 +40,7 @@ const Problem2 = () => {
   const [dataToFetch, setDataToFetch] = useState();
   const [checkbox, setCheckbox] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [page, setPage] = useState(2);
+  const [page, setPage] = useState(1);
   const [data, setData] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -74,36 +75,28 @@ const Problem2 = () => {
     [location, page, navigate]
   );
 
-  const handleModalCloseContacts = useCallback(() => {
-    navigate("/problem-2");
-    dispatch({ type: "showModalOne", value: false });
-  }, [navigate]);
-
   useEffect(() => {
     const getData = async () => {
       setIsLoading(true);
+      const apiUrl =
+        dataToFetch === "all-contacts" ? API_URL_CONTACTS : API_URL_US_CONTACTS;
 
-      if (dataToFetch !== undefined) {
-        const apiUrl =
-          dataToFetch === "all-contacts"
-            ? API_URL_CONTACTS
-            : API_URL_US_CONTACTS;
-
-        try {
-          const response = await fetch(`${apiUrl}1`);
-          const result = await response.json();
+      try {
+        const response = await fetch(`${apiUrl}${page}`);
+        const result = await response.json();
+        if (data.length) {
+          setData((prev) => [...prev, ...result?.results]);
+        } else {
           setData(result?.results);
-        } catch (error) {
-          console.error(error);
         }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
     getData();
-  }, [dataToFetch]);
-
-  console.log(contactData, "cc");
+  }, [dataToFetch, page]);
   return (
     <div className="container">
       <div className="row justify-content-center mt-5">
