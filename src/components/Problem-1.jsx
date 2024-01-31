@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 
+const emptyData = {
+  name: "",
+  status: "",
+};
+
 const Problem1 = () => {
   const [filter, setFilter] = useState("all");
   const [data, setData] = useState([]);
+  const [formValue, setFormValue] = useState({ ...emptyData });
   const [error, setError] = useState({
     name: null,
     status: null,
@@ -10,9 +16,7 @@ const Problem1 = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const name = event.target.name.value;
-    const status = event.target.status.value;
-    if (!name) {
+    if (!formValue.name) {
       setError({
         ...error,
         name: "Name is required",
@@ -24,7 +28,7 @@ const Problem1 = () => {
         name: null,
       });
     }
-    if (!status) {
+    if (!formValue.status) {
       setError({
         ...error,
         status: "status is required",
@@ -36,17 +40,20 @@ const Problem1 = () => {
         status: null,
       });
     }
-    const newData = [...data, { name, status }];
-    setData(newData);
-    event.target.reset();
+    const newData = { name: formValue.name, status: formValue.status.trim() };
+
+    setData((prev) => {
+      return [...prev, newData];
+    });
+    setFormValue({ ...emptyData });
   };
 
   const filterData = () => {
     switch (filter) {
       case "active":
-        return data.filter((item) => item.status === "active");
+        return data.filter((item) => item.status.toLowerCase() === "active");
       case "completed":
-        return data.filter((item) => item.status === "completed");
+        return data.filter((item) => item.status.toLowerCase() === "completed");
       default:
         return data;
     }
@@ -67,6 +74,12 @@ const Problem1 = () => {
   const filteredAndSortedData = sortData(filterData());
 
   const handleResetErrorMessage = (name, value) => {
+    setFormValue((prev) => {
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
     if (value) {
       setError({
         ...error,
@@ -77,6 +90,17 @@ const Problem1 = () => {
         ...error,
         [name]: `${name} is required`,
       });
+    }
+  };
+
+  const statusMapper = (status) => {
+    switch (status) {
+      case "active":
+        return "primary";
+      case "completed":
+        return "success";
+      default:
+        return "secondary";
     }
   };
 
@@ -94,6 +118,7 @@ const Problem1 = () => {
                 type="text"
                 className="form-control"
                 name="name"
+                value={formValue.name}
                 onChange={(e) =>
                   handleResetErrorMessage(e.target.name, e.target.value)
                 }
@@ -106,6 +131,7 @@ const Problem1 = () => {
                 type="text"
                 className="form-control"
                 placeholder="Status"
+                value={formValue.status}
                 name="status"
                 onChange={(e) =>
                   handleResetErrorMessage(e.target.name, e.target.value)
@@ -161,7 +187,11 @@ const Problem1 = () => {
               {filteredAndSortedData.map((item, i) => (
                 <tr key={i}>
                   <td>{item.name}</td>
-                  <td>{item.status}</td>
+                  <td>
+                    <span className={`badge bg-${statusMapper(item.status)}`}>
+                      {item.status}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
